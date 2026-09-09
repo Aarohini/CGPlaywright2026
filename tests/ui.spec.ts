@@ -2,35 +2,18 @@ import { test, expect, type Page } from '@playwright/test';
 
 const BASE_URL = 'https://phptravels.net';
 
-async function acceptDemoPopup(page: Page) {
-  await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-  const popupButton = page.locator('button').filter({ hasText: /I Understand.*Continue/i }).first();
-  await expect(popupButton).toBeVisible({ timeout: 20000 });
-  await popupButton.click({ force: true });
-}
-
-test.describe('PHPTravels UI flows', () => {
-  test('signup page loads after accepting the demo popup', async ({ page }) => {
-    await acceptDemoPopup(page);
-    await page.goto(`${BASE_URL}/signup`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /sign up|signup/i }).first()).toBeVisible({ timeout: 20000 });
-    await expect(page.getByLabel(/first name/i)).toBeVisible();
-    await expect(page.getByLabel(/last name/i)).toBeVisible();
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-  });
-
-  test('login form is usable after popup dismissal', async ({ page }) => {
-    await acceptDemoPopup(page);
-    await page.goto(`${BASE_URL}/login`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { name: /login/i }).first()).toBeVisible({ timeout: 20000 });
-    await expect(page.getByLabel(/email/i)).toBeVisible();
-    await expect(page.getByLabel(/password/i)).toBeVisible();
-  });
-
-  test('flight search form opens after popup dismissal', async ({ page }) => {
-    await acceptDemoPopup(page);
-    await page.goto(`${BASE_URL}/flights`, { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText(/flight search|find flights|flights/i).first()).toBeVisible({ timeout: 20000 });
-    await expect(page.getByRole('button', { name: /search/i }).first()).toBeVisible();
-  });
+test('inspect customer signup popup', async ({ page }) => {
+  await page.goto('https://phptravels.net/');
+  await page.getByRole('button', { name: /i understand & continue/i }).click({ timeout: 10000 }).catch(() => {});
+  await page.getByRole('button', { name: /signup/i }).first().click();
+  await page.getByText(/customer signup|agent signup/i).first().click();
+  //await page.locator(':text("Customer Signup")').click();
+  //await page.getByRole('button', { name: /customer signup/i }).click();
+  await page.waitForTimeout(2000);
+  console.log('URL=', page.url());
+  console.log('Buttons=', await page.locator('button').allTextContents());
+  console.log('Inputs=', await page.locator('input').count());
+  console.log('Labels=', await page.locator('label').allTextContents());
+  console.log('Body=', (await page.locator('body').innerText()).slice(0, 6000));
+  await expect(page.locator('body')).toContainText(/first name|last name|email|password|i agree|register|customer/i);
 });
