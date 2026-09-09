@@ -68,7 +68,7 @@ jobs:
 
       - name: Run Playwright Tests
 
-        run: npx playwright test ui.spec.ts
+        run: npx playwright test "ui.spec.ts"
 
 
       - name: Upload Playwright Report
